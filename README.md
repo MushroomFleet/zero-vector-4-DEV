@@ -7,7 +7,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15%2B-336791.svg)](https://www.postgresql.org/)
 [![Weaviate](https://img.shields.io/badge/Weaviate-1.22%2B-00C9A7.svg)](https://weaviate.io/)
 [![Neo4j](https://img.shields.io/badge/Neo4j-5.13%2B-008CC1.svg)](https://neo4j.com/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
+[![Setup](https://img.shields.io/badge/Setup-Manual-orange.svg)](SETUP.md)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Code Style](https://img.shields.io/badge/Code%20Style-Black-000000.svg)](https://github.com/psf/black)
 
@@ -65,18 +65,15 @@ Zero Vector 4 is a sophisticated multi-agent artificial intelligence platform th
 
 ### Prerequisites
 - Python 3.8 or higher
-- Docker Desktop (recommended) or manual database installations
-- 4GB+ RAM for full database stack
+- SQLite (included with Python) or PostgreSQL for production
+- 4GB+ RAM recommended
 
-### 🐳 One-Command Setup (Recommended)
+### 🚀 Simple Setup
 
 ```bash
 # Clone the repository
 git clone https://github.com/your-username/zero-vector-4.git
 cd zero-vector-4
-
-# Start all services with Docker
-docker-compose up -d
 
 # Set up Python environment
 python -m venv zv4-env
@@ -89,7 +86,7 @@ pip install -r requirements.txt
 # Copy environment template
 cp .env.example .env
 
-# Start the platform
+# Start the platform (uses SQLite by default)
 python main.py
 ```
 
@@ -98,38 +95,24 @@ The platform will be available at:
 - **Documentation**: http://localhost:8000/docs
 - **Health Check**: http://localhost:8000/health
 
+**Note**: The default setup uses SQLite for development. For production use with full database stack, see [SETUP.md](SETUP.md).
+
 ## 📋 Detailed Installation
 
-### Option 1: Docker Setup (Recommended)
+### Option 1: Development Setup (SQLite)
 
 **System Requirements:**
-- Docker Desktop installed and running
-- 4GB+ RAM available for containers
-- 10GB+ free disk space
+- Python 3.8 or higher
+- 2GB+ RAM available
+- 1GB+ free disk space
 
 **Steps:**
-1. **Install Docker Desktop**
+1. **Clone and Setup**
    ```bash
-   # Download from: https://www.docker.com/products/docker-desktop/
-   # Verify installation
-   docker --version
-   docker-compose --version
-   ```
-
-2. **Start Database Services**
-   ```bash
-   # Start all databases
-   docker-compose up -d
+   # Clone the repository
+   git clone https://github.com/your-username/zero-vector-4.git
+   cd zero-vector-4
    
-   # Verify services are running
-   docker-compose ps
-   
-   # Check logs if needed
-   docker-compose logs
-   ```
-
-3. **Set Up Python Environment**
-   ```bash
    # Create virtual environment
    python -m venv zv4-env
    
@@ -143,21 +126,21 @@ The platform will be available at:
    pip install -r requirements.txt
    ```
 
-4. **Configure Environment**
+2. **Configure Environment**
    ```bash
    # Copy environment template
    cp .env.example .env
    
-   # Edit .env file with your specific settings if needed
-   # Default values work with Docker setup
+   # Default SQLite configuration works out of the box
+   # Edit .env file only if you need to change defaults
    ```
 
-5. **Launch Platform**
+3. **Launch Platform**
    ```bash
    python main.py
    ```
 
-### Option 2: Manual Database Installation
+### Option 2: Production Setup (PostgreSQL)
 
 **PostgreSQL Setup:**
 ```bash
@@ -227,9 +210,9 @@ Zero Vector 4 Platform
 │   ├── Weaviate (Vector Storage)
 │   └── Neo4j (Relationship Graphs)
 └── 🔧 Infrastructure
-    ├── Docker Containers
     ├── Health Monitoring
-    └── Logging System
+    ├── Logging System
+    └── Configuration Management
 ```
 
 ## 📁 Project Structure
@@ -266,7 +249,7 @@ zero-vector-4/
 │   ├── setup_databases.sql        # Database initialization
 │   ├── start_databases.bat        # Windows database startup
 │   └── verify_before_upload.py    # Security verification
-├── 🐳 docker-compose.yml           # Docker services
+├── � DockerPlan.md               # Future Docker implementation plan
 ├── 📝 requirements.txt             # Python dependencies
 ├── ⚙️ .env.example                 # Environment template
 └── 🚀 main.py                      # Application entry point
@@ -433,23 +416,31 @@ mypy src/
 
 ### Production Deployment
 
-**Docker Production:**
+**Manual Production Setup:**
 ```bash
-# Build production image
-docker build -t zero-vector-4:latest .
+# Set up production environment
+python -m venv zv4-env
+source zv4-env/bin/activate  # Linux/Mac
+# zv4-env\Scripts\activate     # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure production environment
+cp .env.example .env.production
+# Edit .env.production with production database settings
 
 # Run with production settings
-docker run -d \
-  --name zv4-prod \
-  -p 8000:8000 \
-  --env-file .env.production \
-  zero-vector-4:latest
+ZV4_ENV=production python main.py
 ```
 
 **Cloud Deployment:**
-- **AWS**: ECS, EKS, or EC2 with RDS
-- **Google Cloud**: Cloud Run, GKE, or Compute Engine
-- **Azure**: Container Instances, AKS, or Virtual Machines
+- **AWS**: EC2 with RDS PostgreSQL
+- **Google Cloud**: Compute Engine with Cloud SQL
+- **Azure**: Virtual Machines with Azure Database
+- **Heroku**: Web dyno with Heroku Postgres
+
+**Note**: Docker deployment is planned for future releases. See [DockerPlan.md](DockerPlan.md) for implementation roadmap.
 
 ### Security Considerations
 
@@ -489,8 +480,8 @@ Logs are available in the `logs/` directory (development) or stdout (production)
 # View application logs
 tail -f logs/zero_vector_4.log
 
-# Docker logs
-docker-compose logs -f
+# Monitor logs in real-time
+tail -F logs/zero_vector_4.log
 ```
 
 ## 🆘 Troubleshooting
@@ -499,30 +490,39 @@ docker-compose logs -f
 
 **Database Connection Errors:**
 ```bash
-# Check if PostgreSQL is running
-docker-compose ps postgres
+# Check if PostgreSQL is running (Linux/Mac)
+sudo systemctl status postgresql
 
 # Test connection
 psql -h localhost -U zv4_user -d zero_vector_4
+
+# For SQLite, check if file exists
+ls -la zero_vector_4.db
 ```
 
 **Port Already in Use:**
 ```bash
 # Find process using port 8000
-netstat -tulpn | grep :8000
+# Linux/Mac:
+lsof -i :8000
+# Windows:
+netstat -ano | findstr :8000
 
 # Kill process if needed
-kill -9 <process_id>
+kill -9 <process_id>  # Linux/Mac
+# taskkill /PID <process_id> /F  # Windows
 ```
 
-**Docker Issues:**
+**Python Environment Issues:**
 ```bash
-# Restart Docker services
-docker-compose down
-docker-compose up -d
+# Verify Python version
+python --version
 
-# Clean Docker system
-docker system prune -f
+# Check virtual environment
+which python  # Should point to zv4-env
+
+# Reinstall dependencies
+pip install --upgrade -r requirements.txt
 ```
 
 **Memory Issues:**
