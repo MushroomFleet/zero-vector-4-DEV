@@ -1,0 +1,136 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: zv4-postgres
+    environment:
+      POSTGRES_DB: zero_vector_4
+      POSTGRES_USER: zv4_user
+      POSTGRES_PASSWORD: zv4_dev_password_2024
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/setup_databases.sql:/docker-entrypoint-initdb.d/01-init.sql
+    networks:
+      - zv4-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zv4_user -d zero_vector_4"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    container_name: zv4-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - zv4-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Weaviate Vector Database
+  weaviate:
+    image: semitechnologies/weaviate:1.22.4
+    container_name: zv4-weaviate
+    ports:
+      - "8080:8080"
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      DEFAULT_VECTORIZER_MODULE: 'none'
+      ENABLE_MODULES: 'text2vec-openai,text2vec-cohere,text2vec-huggingface,ref2vec-centroid,generative-openai,qna-openai'
+      CLUSTER_HOSTNAME: 'node1'
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    networks:
+      - zv4-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/.well-known/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Neo4j Graph Database
+  neo4j:
+    image: neo4j:5.13-community
+    container_name: zv4-neo4j
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    environment:
+      NEO4J_AUTH: neo4j/neo4j_dev_password
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
+      NEO4J_dbms_security_procedures_allowlist: apoc.*
+      NEO4J_dbms_memory_heap_initial__size: 512m
+      NEO4J_dbms_memory_heap_max__size: 1G
+      NEO4J_dbms_memory_pagecache_size: 512m
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_import:/var/lib/neo4j/import
+      - neo4j_plugins:/plugins
+    networks:
+      - zv4-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "neo4j_dev_password", "RETURN 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Database initialization service
+  db-init:
+    image: postgres:15-alpine
+    container_name: zv4-db-init
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: zv4_dev_password_2024
+    command: >
+      sh -c "
+        echo 'Waiting for PostgreSQL to be ready...' &&
+        sleep 5 &&
+        echo 'PostgreSQL is ready! Database should be initialized.' &&
+        psql -h postgres -U zv4_user -d zero_vector_4 -c 'SELECT version();' &&
+        echo 'Database connection verified successfully!'
+      "
+    networks:
+      - zv4-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  weaviate_data:
+    driver: local
+  neo4j_data:
+    driver: local
+  neo4j_logs:
+    driver: local
+  neo4j_import:
+    driver: local
+  neo4j_plugins:
+    driver: local
+
+networks:
+  zv4-network:
+    driver: bridge
+    name: zero-vector-4-network

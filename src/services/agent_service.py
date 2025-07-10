@@ -8,7 +8,7 @@ from typing import List, Optional, Dict, Any
 from uuid import UUID, uuid4
 from datetime import datetime
 
-from ..models.agents import Agent, TLPAgent, BasicAgent, AgentType, AgentPersonality
+from ..models.agents import Agent, TLPAgent, BasicAgent, AgentType
 from ..models.memory import Memory, MemoryType
 from ..models.relationships import AgentRelationship, RelationshipType
 from ..database.repositories import AgentRepository, MemoryRepository, RelationshipRepository
@@ -192,7 +192,7 @@ class AgentService:
             subordinate_name = agent_name or f"specialist_{specialization}_{uuid4().hex[:8]}"
             subordinate = await self.create_agent(
                 name=subordinate_name,
-                agent_type=AgentType.SUBORDINATE,
+                agent_type=AgentType.SPECIALIST,
                 specialization=specialization,
                 description=f"Dynamically recruited specialist for {specialization}",
                 parent_agent_id=recruiting_agent_id,

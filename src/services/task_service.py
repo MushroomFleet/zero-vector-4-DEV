@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 from ..models.tasks import Task, TaskStatus, TaskResult, TaskPriority
 from ..models.agents import Agent, AgentType
-from ..models.relationships import TaskDependency, DependencyType
+from ..models.relationships import TaskDependency
 from ..database.repositories import TaskRepository, AgentRepository, RelationshipRepository
 from ..database.connection import get_db_session
 from ..core.config import get_config
@@ -321,7 +321,7 @@ class TaskService:
         self,
         dependent_task_id: UUID,
         dependency_task_id: UUID,
-        dependency_type: DependencyType = DependencyType.FINISH_TO_START,
+        dependency_type: str = "finish_to_start",
         is_blocking: bool = True,
         is_critical: bool = False
     ) -> TaskDependency:
@@ -389,7 +389,7 @@ class TaskService:
                             await self.create_task_dependency(
                                 subtask.id,
                                 dependency_task_id,
-                                dep_spec.get("type", DependencyType.FINISH_TO_START),
+                                dep_spec.get("type", "finish_to_start"),
                                 dep_spec.get("is_blocking", True),
                                 dep_spec.get("is_critical", False)
                             )

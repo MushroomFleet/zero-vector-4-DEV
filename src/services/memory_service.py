@@ -10,8 +10,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 
 from ..models.memory import (
-    Memory, MemoryType, MemoryEntry, EpisodicMemory, 
-    SemanticMemory, ProceduralMemory, WorkingMemory
+    Memory, MemoryType, Experience, ConsciousnessState, MemoryCluster
 )
 from ..models.agents import Agent
 from ..database.repositories import MemoryRepository, AgentRepository
@@ -49,26 +48,24 @@ class MemoryService:
         importance_score: float = 0.5,
         tags: List[str] = None,
         associations: List[UUID] = None
-    ) -> MemoryEntry:
+    ) -> Memory:
         """Create a new memory entry for an agent"""
         try:
             async with get_db_session() as session:
                 memory_repo = MemoryRepository(session)
                 
                 # Create base memory entry
-                memory_entry = MemoryEntry(
+                memory_entry = Memory(
                     id=uuid4(),
-                    agent_id=agent_id,
+                    name=f"memory_{uuid4().hex[:8]}",
+                    agent_id=str(agent_id),
                     memory_type=memory_type,
                     content=content,
-                    context=context or {},
+                    structured_data=context or {},
                     emotional_valence=emotional_valence,
                     importance_score=importance_score,
-                    tags=tags or [],
-                    associations=associations or [],
-                    access_count=0,
-                    last_accessed=datetime.utcnow(),
-                    created_at=datetime.utcnow()
+                    context_tags=tags or [],
+                    associated_agents=[str(a) for a in (associations or [])]
                 )
                 
                 created_memory = await memory_repo.create(memory_entry)
@@ -92,7 +89,7 @@ class MemoryService:
         outcome: str = None,
         emotions: Dict[str, float] = None,
         importance_score: float = 0.5
-    ) -> EpisodicMemory:
+    ) -> Memory:
         """Create an episodic memory (specific event with context)"""
         try:
             async with get_db_session() as session:
@@ -105,17 +102,18 @@ class MemoryService:
                     "emotions": emotions or {}
                 }
                 
-                episodic_memory = EpisodicMemory(
+                episodic_memory = Memory(
                     id=uuid4(),
-                    agent_id=agent_id,
+                    name=f"episodic_{uuid4().hex[:8]}",
+                    agent_id=str(agent_id),
+                    memory_type=MemoryType.EPISODIC,
                     content=event_description,
-                    context=context,
+                    structured_data=context,
                     emotional_valence=self._calculate_emotional_valence(emotions or {}),
                     importance_score=importance_score,
-                    participants=participants or [],
-                    location=location,
-                    outcome=outcome,
-                    emotions=emotions or {}
+                    context_tags=[],
+                    associated_agents=participants or [],
+                    location=location
                 )
                 
                 created_memory = await memory_repo.create(episodic_memory)
@@ -136,7 +134,7 @@ class MemoryService:
         confidence_level: float = 0.8,
         source: str = None,
         related_concepts: List[str] = None
-    ) -> SemanticMemory:
+    ) -> Memory:
         """Create a semantic memory (general knowledge)"""
         try:
             async with get_db_session() as session:
@@ -145,19 +143,19 @@ class MemoryService:
                 context = {
                     "domain": domain,
                     "source": source,
-                    "related_concepts": related_concepts or []
+                    "related_concepts": related_concepts or [],
+                    "confidence_level": confidence_level
                 }
                 
-                semantic_memory = SemanticMemory(
+                semantic_memory = Memory(
                     id=uuid4(),
-                    agent_id=agent_id,
+                    name=f"semantic_{uuid4().hex[:8]}",
+                    agent_id=str(agent_id),
+                    memory_type=MemoryType.SEMANTIC,
                     content=knowledge,
-                    context=context,
+                    structured_data=context,
                     importance_score=confidence_level,
-                    domain=domain,
-                    confidence_level=confidence_level,
-                    source=source,
-                    related_concepts=related_concepts or []
+                    context_tags=[domain]
                 )
                 
                 created_memory = await memory_repo.create(semantic_memory)
@@ -177,7 +175,7 @@ class MemoryService:
         success_rate: float = 0.0,
         conditions: List[str] = None,
         prerequisites: List[str] = None
-    ) -> ProceduralMemory:
+    ) -> Memory:
         """Create a procedural memory (skill or procedure)"""
         try:
             async with get_db_session() as session:
@@ -185,20 +183,21 @@ class MemoryService:
                 
                 context = {
                     "conditions": conditions or [],
-                    "prerequisites": prerequisites or []
+                    "prerequisites": prerequisites or [],
+                    "skill_name": skill_name,
+                    "procedure_steps": procedure_steps,
+                    "success_rate": success_rate
                 }
                 
-                procedural_memory = ProceduralMemory(
+                procedural_memory = Memory(
                     id=uuid4(),
-                    agent_id=agent_id,
+                    name=f"procedural_{uuid4().hex[:8]}",
+                    agent_id=str(agent_id),
+                    memory_type=MemoryType.PROCEDURAL,
                     content=f"Skill: {skill_name}",
-                    context=context,
+                    structured_data=context,
                     importance_score=success_rate,
-                    skill_name=skill_name,
-                    procedure_steps=procedure_steps,
-                    success_rate=success_rate,
-                    conditions=conditions or [],
-                    prerequisites=prerequisites or []
+                    context_tags=[skill_name]
                 )
                 
                 created_memory = await memory_repo.create(procedural_memory)
@@ -218,7 +217,7 @@ class MemoryService:
         similarity_threshold: float = 0.7,
         limit: int = 10,
         time_range: Optional[Tuple[datetime, datetime]] = None
-    ) -> List[MemoryEntry]:
+    ) -> List[Memory]:
         """Retrieve memories based on various criteria"""
         try:
             async with get_db_session() as session:
@@ -259,7 +258,7 @@ class MemoryService:
             logger.error(f"Error retrieving memories: {e}")
             raise
     
-    async def get_working_memory(self, agent_id: UUID) -> List[MemoryEntry]:
+    async def get_working_memory(self, agent_id: UUID) -> List[Memory]:
         """Get agent's current working memory"""
         try:
             async with get_db_session() as session:
@@ -342,7 +341,7 @@ class MemoryService:
         memory_id: UUID,
         new_importance: float,
         reason: str = ""
-    ) -> Optional[MemoryEntry]:
+    ) -> Optional[Memory]:
         """Update the importance score of a memory"""
         try:
             async with get_db_session() as session:
@@ -354,18 +353,18 @@ class MemoryService:
                 }
                 
                 if reason:
-                    # Add update reason to context
+                    # Add update reason to structured_data
                     memory = await memory_repo.get_by_id(memory_id)
                     if memory:
-                        context = memory.context or {}
-                        if "importance_updates" not in context:
-                            context["importance_updates"] = []
-                        context["importance_updates"].append({
+                        structured_data = memory.structured_data or {}
+                        if "importance_updates" not in structured_data:
+                            structured_data["importance_updates"] = []
+                        structured_data["importance_updates"].append({
                             "timestamp": datetime.utcnow().isoformat(),
                             "new_score": new_importance,
                             "reason": reason
                         })
-                        updates["context"] = context
+                        updates["structured_data"] = structured_data
                 
                 updated_memory = await memory_repo.update(memory_id, updates)
                 
@@ -444,7 +443,7 @@ class MemoryService:
     
     # Private helper methods
     
-    async def _add_to_working_memory(self, agent_id: UUID, memory: MemoryEntry):
+    async def _add_to_working_memory(self, agent_id: UUID, memory: Memory):
         """Add memory to agent's working memory"""
         try:
             # Working memory is managed through access patterns and recency
@@ -455,7 +454,7 @@ class MemoryService:
     
     async def _calculate_relevance(
         self,
-        memory: MemoryEntry,
+        memory: Memory,
         keywords: List[str]
     ) -> float:
         """Calculate relevance score between memory and keywords"""
@@ -465,9 +464,9 @@ class MemoryService:
             
             # Check tags and context
             tag_matches = sum(1 for keyword in keywords 
-                            if any(keyword.lower() in tag.lower() for tag in memory.tags))
+                            if any(keyword.lower() in tag.lower() for tag in memory.context_tags))
             
-            context_str = str(memory.context).lower()
+            context_str = str(memory.structured_data).lower()
             context_matches = sum(1 for keyword in keywords if keyword.lower() in context_str)
             
             total_matches = matches + tag_matches + context_matches
@@ -492,7 +491,7 @@ class MemoryService:
     
     async def _identify_memory_patterns(
         self,
-        memories: List[MemoryEntry]
+        memories: List[Memory]
     ) -> List[Dict[str, Any]]:
         """Identify patterns in recent memories"""
         try:
@@ -501,7 +500,7 @@ class MemoryService:
             # Group by tags
             tag_groups = {}
             for memory in memories:
-                for tag in memory.tags:
+                for tag in memory.context_tags:
                     if tag not in tag_groups:
                         tag_groups[tag] = []
                     tag_groups[tag].append(memory)
@@ -540,7 +539,7 @@ class MemoryService:
             logger.error(f"Error identifying memory patterns: {e}")
             return []
     
-    async def _consolidate_to_longterm(self, memory: MemoryEntry):
+    async def _consolidate_to_longterm(self, memory: Memory):
         """Move important memory to long-term storage"""
         try:
             async with get_db_session() as session:
@@ -560,7 +559,7 @@ class MemoryService:
     
     async def _create_memory_associations(
         self,
-        memories: List[MemoryEntry]
+        memories: List[Memory]
     ) -> List[Tuple[UUID, UUID]]:
         """Create associations between related memories"""
         try:
@@ -589,14 +588,14 @@ class MemoryService:
     
     async def _calculate_memory_similarity(
         self,
-        memory1: MemoryEntry,
-        memory2: MemoryEntry
+        memory1: Memory,
+        memory2: Memory
     ) -> float:
         """Calculate similarity between two memories"""
         try:
             # Simple similarity based on shared tags and content overlap
-            shared_tags = set(memory1.tags) & set(memory2.tags)
-            tag_similarity = len(shared_tags) / max(len(memory1.tags), len(memory2.tags), 1)
+            shared_tags = set(memory1.context_tags) & set(memory2.context_tags)
+            tag_similarity = len(shared_tags) / max(len(memory1.context_tags), len(memory2.context_tags), 1)
             
             # Check for common words in content
             words1 = set(memory1.content.lower().split())

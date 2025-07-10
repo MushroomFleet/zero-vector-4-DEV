@@ -113,15 +113,19 @@ class DatabaseManager:
     async def _init_weaviate(self):
         """Initialize Weaviate connection"""
         try:
-            auth_config = None
-            if self.config.database.weaviate_api_key:
-                auth_config = weaviate.AuthApiKey(
-                    api_key=self.config.database.weaviate_api_key
-                )
+            import weaviate.classes as wvc
             
-            self._weaviate_client = weaviate.Client(
-                url=self.config.database.weaviate_url,
-                auth_client_secret=auth_config
+            auth_config = None
+            if hasattr(self.config, 'database') and hasattr(self.config.database, 'weaviate_api_key') and self.config.database.weaviate_api_key:
+                auth_config = wvc.init.Auth.api_key(self.config.database.weaviate_api_key)
+            
+            # Get Weaviate URL from config
+            weaviate_url = getattr(self.config.database, 'weaviate_url', 'http://localhost:8080')
+            
+            self._weaviate_client = weaviate.connect_to_local(
+                host=weaviate_url.replace('http://', '').replace('https://', '').split(':')[0],
+                port=int(weaviate_url.split(':')[-1]) if ':' in weaviate_url.split('//')[-1] else 8080,
+                auth=auth_config
             )
             
             # Test connection
@@ -156,6 +160,22 @@ class DatabaseManager:
             logger.error(f"Failed to initialize Neo4j: {e}")
             # Don't raise - Neo4j is optional
             self._neo4j_driver = None
+    
+    async def create_tables(self):
+        """Create database tables if they don't exist"""
+        try:
+            from .tables import Base
+            
+            # Create tables using sync engine
+            if self._postgres_engine:
+                Base.metadata.create_all(bind=self._postgres_engine)
+                logger.info("Database tables created/verified")
+            else:
+                logger.warning("Cannot create tables: PostgreSQL engine not initialized")
+                
+        except Exception as e:
+            logger.error(f"Error creating database tables: {e}")
+            raise
     
     async def close(self):
         """Close all database connections"""

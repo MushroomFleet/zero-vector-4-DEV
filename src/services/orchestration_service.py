@@ -11,7 +11,7 @@ from enum import Enum
 
 from ..models.tasks import Task, TaskStatus, TaskResult, TaskPriority
 from ..models.agents import Agent, AgentType
-from ..models.relationships import TaskDependency, DependencyType
+from ..models.relationships import TaskDependency
 from .agent_service import AgentService
 from .task_service import TaskService
 from ..database.connection import get_db_session

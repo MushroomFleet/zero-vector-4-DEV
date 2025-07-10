@@ -195,3 +195,44 @@ def reload_config() -> Config:
     global _config
     _config = Config()
     return _config
+
+
+class Settings:
+    """FastAPI-compatible settings object with flat attributes"""
+    
+    def __init__(self, config: Config):
+        # Environment settings
+        self.ENVIRONMENT = config.env
+        self.DEBUG = config.debug
+        self.LOG_LEVEL = config.log_level
+        
+        # API settings
+        self.HOST = config.api.host
+        self.PORT = config.api.port
+        self.SECRET_KEY = config.api.secret_key
+        self.ALLOWED_HOSTS = config.api.cors_origins
+        
+        # Database settings
+        self.DATABASE_URL = config.postgres_url
+        self.REDIS_URL = config.redis_url
+        
+        # AI Model settings
+        self.GOOGLE_API_KEY = config.ai_models.google_api_key
+        self.OPENAI_API_KEY = config.ai_models.openai_api_key
+        self.ANTHROPIC_API_KEY = config.ai_models.anthropic_api_key
+        self.DEFAULT_MODEL = config.ai_models.default_model
+        
+        # Agent settings
+        self.MAX_TLP_AGENTS = config.agents.max_tlp_agents
+        self.MAX_SUBORDINATES_PER_TLP = config.agents.max_subordinates_per_tlp
+        self.CONSCIOUSNESS_UPDATE_INTERVAL = config.agents.consciousness_update_interval
+        self.MEMORY_CONSOLIDATION_INTERVAL = config.agents.memory_consolidation_interval
+        
+        # Performance settings
+        self.MAX_CONCURRENT_TASKS = config.performance.max_concurrent_tasks
+        self.VECTOR_DIMENSION = config.performance.vector_dimension
+
+
+# Global settings instance
+config = get_config()
+settings = Settings(config)

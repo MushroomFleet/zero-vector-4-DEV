@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 
 from ..models.agents import Agent, AgentType
-from ..models.memory import MemoryEntry, MemoryType
+from ..models.memory import Memory, MemoryType
 from .memory_service import MemoryService
 from .agent_service import AgentService
 from ..database.repositories import AgentRepository, MemoryRepository
@@ -694,7 +694,7 @@ class ConsciousnessService:
         
         return base_score * stage_multiplier
     
-    async def _generate_dream_insights(self, memories: List[MemoryEntry]) -> List[Dict[str, Any]]:
+    async def _generate_dream_insights(self, memories: List[Memory]) -> List[Dict[str, Any]]:
         """Generate insights during dream processing"""
         insights = []
         
@@ -721,7 +721,7 @@ class ConsciousnessService:
     async def _generate_predictive_scenarios(
         self, 
         agent_id: UUID, 
-        memories: List[MemoryEntry]
+        memories: List[Memory]
     ) -> List[Dict[str, Any]]:
         """Generate predictive scenarios during dreams"""
         scenarios = []
