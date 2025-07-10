@@ -109,6 +109,51 @@ class AgentService:
             logger.error(f"Error getting agent by name {name}: {e}")
             raise
     
+    async def list_agents(
+        self,
+        agent_type: Optional[AgentType] = None,
+        status: Optional[str] = None,
+        specialization: Optional[str] = None,
+        manager_id: Optional[UUID] = None,
+        limit: int = 100,
+        offset: int = 0
+    ) -> List[Agent]:
+        """List agents with optional filtering"""
+        try:
+            async with get_db_session() as session:
+                agent_repo = AgentRepository(session)
+                
+                # If no filters, use simple list_all
+                if not any([agent_type, status, specialization, manager_id]):
+                    return await agent_repo.list_all(limit=limit, offset=offset)
+                
+                # Apply filters
+                agents = []
+                
+                if agent_type:
+                    agents = await agent_repo.get_by_type(agent_type)
+                else:
+                    agents = await agent_repo.list_all(limit=1000, offset=0)  # Get all for filtering
+                
+                # Apply additional filters
+                if status:
+                    agents = [agent for agent in agents if agent.status.value == status]
+                
+                if specialization:
+                    agents = [agent for agent in agents if agent.specialization == specialization]
+                
+                if manager_id:
+                    agents = [agent for agent in agents if agent.parent_agent_id == manager_id]
+                
+                # Apply pagination
+                start_idx = offset
+                end_idx = offset + limit
+                return agents[start_idx:end_idx]
+                
+        except Exception as e:
+            logger.error(f"Error listing agents: {e}")
+            raise
+    
     async def get_agents_by_type(self, agent_type: AgentType) -> List[Agent]:
         """Get all agents of specified type"""
         try:

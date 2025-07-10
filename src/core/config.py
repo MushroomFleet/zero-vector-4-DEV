@@ -98,6 +98,14 @@ class Config:
         self.debug = os.getenv("ZV4_DEBUG", "true").lower() == "true"
         self.log_level = os.getenv("ZV4_LOG_LEVEL", "INFO")
         
+        # Database URL for SQLite/PostgreSQL
+        self.database_url = os.getenv("DATABASE_URL", "sqlite:///./zero_vector_4.db")
+        
+        # Optional database flags
+        self.redis_enabled = os.getenv("REDIS_ENABLED", "false").lower() == "true"
+        self.weaviate_enabled = os.getenv("WEAVIATE_ENABLED", "false").lower() == "true"
+        self.neo4j_enabled = os.getenv("NEO4J_ENABLED", "false").lower() == "true"
+        
         self.database = DatabaseConfig(
             postgres_host=os.getenv("POSTGRES_HOST", "localhost"),
             postgres_port=int(os.getenv("POSTGRES_PORT", "5432")),

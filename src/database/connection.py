@@ -36,19 +36,71 @@ class DatabaseManager:
         """Initialize all database connections"""
         logger.info("Initializing database connections")
         
-        # PostgreSQL connections
-        await self._init_postgres()
+        # Primary database (SQLite or PostgreSQL)
+        await self._init_primary_database()
         
-        # Redis connection
-        await self._init_redis()
+        # Optional databases
+        if getattr(self.config, 'redis_enabled', True):
+            await self._init_redis()
         
-        # Weaviate connection
-        await self._init_weaviate()
+        if getattr(self.config, 'weaviate_enabled', False):
+            await self._init_weaviate()
         
-        # Neo4j connection (optional)
-        await self._init_neo4j()
+        if getattr(self.config, 'neo4j_enabled', False):
+            await self._init_neo4j()
         
-        logger.info("All database connections initialized")
+        logger.info("Database connections initialized")
+    
+    async def _init_primary_database(self):
+        """Initialize primary database (SQLite or PostgreSQL)"""
+        try:
+            # Check if we have a DATABASE_URL for SQLite
+            database_url = getattr(self.config, 'database_url', None)
+            
+            if database_url and database_url.startswith('sqlite'):
+                await self._init_sqlite(database_url)
+            else:
+                await self._init_postgres()
+                
+        except Exception as e:
+            logger.error(f"Failed to initialize primary database: {e}")
+            raise
+    
+    async def _init_sqlite(self, database_url: str):
+        """Initialize SQLite connections"""
+        try:
+            # Sync engine for migrations and admin tasks
+            self._postgres_engine = create_engine(
+                database_url,
+                echo=self.config.debug,
+                connect_args={"check_same_thread": False}  # SQLite specific
+            )
+            
+            # Async engine for application use
+            async_url = database_url.replace("sqlite:///", "sqlite+aiosqlite:///")
+            self._async_postgres_engine = create_async_engine(
+                async_url,
+                echo=self.config.debug,
+                connect_args={"check_same_thread": False}
+            )
+            
+            # Session factories
+            self._session_factory = sessionmaker(
+                bind=self._postgres_engine,
+                expire_on_commit=False
+            )
+            
+            self._async_session_factory = async_sessionmaker(
+                bind=self._async_postgres_engine,
+                class_=AsyncSession,
+                expire_on_commit=False
+            )
+            
+            logger.info("SQLite connections initialized")
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize SQLite: {e}")
+            raise
     
     async def _init_postgres(self):
         """Initialize PostgreSQL connections"""
@@ -164,11 +216,11 @@ class DatabaseManager:
     async def create_tables(self):
         """Create database tables if they don't exist"""
         try:
-            from .tables import Base
+            from .tables import metadata
             
             # Create tables using sync engine
             if self._postgres_engine:
-                Base.metadata.create_all(bind=self._postgres_engine)
+                metadata.create_all(bind=self._postgres_engine)
                 logger.info("Database tables created/verified")
             else:
                 logger.warning("Cannot create tables: PostgreSQL engine not initialized")

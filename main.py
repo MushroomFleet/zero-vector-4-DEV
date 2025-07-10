@@ -13,7 +13,7 @@ from datetime import datetime
 
 from src.core.config import settings
 from src.core.logging import get_logger, setup_logging
-from src.database.connection import DatabaseManager
+from src.database.connection import init_database, close_database, get_db_manager
 from src.api import (
     agents_router,
     consciousness_router,
@@ -25,9 +25,6 @@ from src.api import (
 setup_logging()
 logger = get_logger(__name__)
 
-# Database manager
-db_manager = DatabaseManager()
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -35,8 +32,8 @@ async def lifespan(app: FastAPI):
     logger.info("Starting Zero Vector 4 platform...")
     
     try:
-        # Initialize database
-        await db_manager.initialize()
+        # Initialize database (this sets the global db manager)
+        db_manager = await init_database()
         logger.info("Database initialized successfully")
         
         # Create tables if they don't exist
@@ -51,7 +48,7 @@ async def lifespan(app: FastAPI):
     finally:
         # Cleanup
         logger.info("Shutting down Zero Vector 4 platform...")
-        await db_manager.close()
+        await close_database()
 
 
 # Create FastAPI application
@@ -94,6 +91,7 @@ async def health_check():
     """Health check endpoint"""
     try:
         # Check database connection
+        db_manager = get_db_manager()
         db_status = await db_manager.health_check()
         
         return {

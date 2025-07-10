@@ -7,14 +7,11 @@ from sqlalchemy import (
     ForeignKey, Index, UniqueConstraint, CheckConstraint
 )
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from uuid import uuid4
 
 from ..models.base import TimestampedSQLModel
-
-Base = declarative_base()
 
 
 class AgentTable(TimestampedSQLModel):
@@ -58,7 +55,7 @@ class AgentTable(TimestampedSQLModel):
     experience_count = Column(Integer, nullable=True)
     
     # Relationships
-    parent_agent = relationship("AgentTable", remote_side=[id], backref="subordinates")
+    parent_agent = relationship("AgentTable", remote_side=lambda: AgentTable.id, backref="subordinates")
     
     # Indexes
     __table_args__ = (
@@ -119,7 +116,7 @@ class TaskTable(TimestampedSQLModel):
     
     # Relationships
     assigned_agent = relationship("AgentTable", backref="assigned_tasks")
-    parent_task = relationship("TaskTable", remote_side=[id], backref="subtasks")
+    parent_task = relationship("TaskTable", remote_side=lambda: TaskTable.id, backref="subtasks")
     
     # Indexes
     __table_args__ = (
@@ -382,7 +379,8 @@ class ConsciousnessStateTable(TimestampedSQLModel):
 
 
 # Create metadata for all tables
-metadata = Base.metadata
+from ..models.base import SQLAlchemyBase
+metadata = SQLAlchemyBase.metadata
 
 
 def create_tables(engine):
