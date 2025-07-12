@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "zero-vector-4-mcp": {
+      "command": "node",
+      "args": ["C:/Projects/zero-vector-4-dev/MCP/zero-vector-4-mcp/build/index.js"],
+      "env": {
+        "ZV4_API_BASE_URL": "http://localhost:8000",
+        "ZV4_API_KEY": ""
+      }
+    }
+  }
+}
