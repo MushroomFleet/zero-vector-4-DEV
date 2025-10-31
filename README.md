@@ -567,4 +567,26 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
+## 📚 Citation
+
+### Academic Citation
+
+If you use this codebase in your research or project, please cite:
+
+```bibtex
+@software{zero_vector_4_DEV,
+  title = {Zero Vector 4 DEV: digital consciousness research},
+  author = {[Drift Johnson]},
+  year = {2025},
+  url = {https://github.com/MushroomFleet/zero-vector-4-DEV},
+  version = {1.0.0}
+}
+```
+
+### Donate:
+
+
+[![Ko-Fi](https://cdn.ko-fi.com/cdn/kofi3.png?v=3)](https://ko-fi.com/driftjohnson)
+
 **Zero Vector 4** - Advancing the frontier of multi-agent AI systems and digital consciousness research.
+
