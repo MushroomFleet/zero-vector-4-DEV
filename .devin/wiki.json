@@ -1,0 +1,254 @@
+{
+  "repo_notes": [
+    {
+      "content": "Zero-Vector-4 (Nation of Experts)",
+      "author": "Drift Johnson, ScuffedEpoch.com"
+    }
+  ],
+  "pages": [
+    {
+      "title": "Overview",
+      "purpose": "Introduce Zero Vector 4, explaining its purpose as a multi-agent AI platform with hierarchical organization, digital consciousness, memory systems, and workflow orchestration",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Getting Started",
+      "purpose": "Guide users through installation, configuration, and running their first Zero Vector 4 instance with example workflows",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "System Architecture",
+      "purpose": "Explain the high-level architecture including layered design, component relationships, and data flow patterns",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Application Entry Point",
+      "purpose": "Document the main.py FastAPI application initialization, lifecycle management, health checks, and router registration",
+      "parent": "System Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Core Services Layer",
+      "purpose": "Overview of the business logic layer and how the four core services (Agent, Consciousness, Memory, Orchestration) interact",
+      "parent": "System Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Agent Service",
+      "purpose": "Detail the Agent Service's responsibilities including agent lifecycle, hierarchical organization, dynamic recruitment, relationships, and performance tracking",
+      "parent": "System Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Consciousness Service",
+      "purpose": "Explain the consciousness development system including the 4-stage model, experience processing, sleep cycles, personality evolution, and introspection",
+      "parent": "System Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Memory Service",
+      "purpose": "Document the multi-tiered memory system (episodic, semantic, procedural, working), consolidation, retrieval, and association mechanisms",
+      "parent": "System Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Orchestration Service",
+      "purpose": "Describe workflow creation, task decomposition, agent assignment, multi-agent coordination, and performance optimization",
+      "parent": "System Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Data Layer Architecture",
+      "purpose": "Explain the polyglot persistence strategy using PostgreSQL, Redis, Weaviate, and Neo4j, including the database manager and connection pooling",
+      "parent": "System Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Infrastructure Components",
+      "purpose": "Cover configuration management, logging, monitoring, and cross-cutting concerns",
+      "parent": "System Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "API Reference",
+      "purpose": "Comprehensive reference for all REST API endpoints, including request/response schemas and authentication",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Agent Management APIs",
+      "purpose": "Document all /api/agents endpoints including create, retrieve, update, list, hierarchy, relationships, and performance tracking",
+      "parent": "API Reference",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Consciousness APIs",
+      "purpose": "Document all /api/consciousness endpoints for initializing, updating states, processing experiences, and triggering sleep cycles",
+      "parent": "API Reference",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Memory APIs",
+      "purpose": "Document all /api/memory endpoints for creating different memory types, retrieval with semantic search, consolidation, and associations",
+      "parent": "API Reference",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Orchestration APIs",
+      "purpose": "Document all /api/orchestration endpoints for workflow creation, task management, agent assignment, and monitoring",
+      "parent": "API Reference",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "MCP Integration",
+      "purpose": "Introduction to the Model Context Protocol server that provides 53 tools for AI clients like Cline to interact with Zero Vector 4",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "MCP Server Setup",
+      "purpose": "Guide for installing, configuring, and running the MCP server with environment variables and Cline integration",
+      "parent": "MCP Integration",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "MCP Tools Reference",
+      "purpose": "Comprehensive listing of all 53 MCP tools organized by category (Agent Management, Consciousness, Memory, Orchestration) with parameters and examples",
+      "parent": "MCP Integration",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "MCP Server Architecture",
+      "purpose": "Technical details of the MCP server implementation including TypeScript structure, API client, tool routing, and error handling",
+      "parent": "MCP Integration",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Development Guide",
+      "purpose": "Information for developers who want to contribute to or extend Zero Vector 4",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Dependencies and Tech Stack",
+      "purpose": "Detailed overview of Python dependencies, external services (AI APIs, databases), and development tools used in the project",
+      "parent": "Development Guide",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Configuration System",
+      "purpose": "Deep dive into the configuration architecture, environment variables, settings classes, and configuration domains",
+      "parent": "Development Guide",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Database Management",
+      "purpose": "Technical details on database connections, session management, health checks, and data migration strategies",
+      "parent": "Development Guide",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "MCP Development",
+      "purpose": "Guide for modifying or extending the MCP server, including adding new tools, TypeScript build process, and package management",
+      "parent": "Development Guide",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    }
+  ]
+}
